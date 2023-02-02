@@ -2,8 +2,6 @@
 
 Conversor Ultra Stac by dogdark
 
-# ESPAÑOL
-
 ## DESCRIPCION
 Conversor con sistema stac, poderoso al momento de pasar tus juegos a la cinta, ya que cuenta con 4 niveles de velocidades, que puedes usar a tu gusto.
 
