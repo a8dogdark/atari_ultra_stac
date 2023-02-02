@@ -1,6 +1,6 @@
 ;COPIADOR DOGCOPY ULTRA VERSION 2.3 2020
 ;CODIGO PRINCIPAL CREADO POR PARCHE NEGRO SOFT
-;EN LOS AÑOS 90
+;EN LOS ANOS 90
 ;CODIGO ORIGINAL : NHP 3.6
 ;MODIFICADO POR DOGDARK 2019
 ;
@@ -1267,7 +1267,7 @@ GAUTO2
 	STY $0305
 	JSR $E459
 	JSR INITSIOV
-	LDX #$10		;GENREAMOS UNA PEQUEÑA PAUSA PARA QUE SE
+	LDX #$10		;GENREAMOS UNA PEQUEï¿½A PAUSA PARA QUE SE
 	JSR PAUSITA		;ACTIVE LA ROM A RAM DE LA PAGINA7
    	LDA SISTEMA		;VALIDAMOS EL SISTEMA
    	CMP #0			;SIS SITEMA ES MAYOR QUE 0 
@@ -1433,7 +1433,7 @@ GRABUNO
 ;	RTS
 
 
-;función agrega bytes a bloques
+;funciï¿½n agrega bytes a bloques
 ?MVBF
 	JSR GBYTE
 	STA STARTF
@@ -1591,7 +1591,7 @@ START
 	STA 710
 	STA 712
 //***********************************************
-// Vamos a poner una interrupción VBI aquí
+// Vamos a poner una interrupciï¿½n VBI aquï¿½
 //***********************************************
 	ldy #<VBI
 	ldx #>VBI
@@ -1730,7 +1730,7 @@ OTRACOPIA
 	JSR NHPUT		;GRABO LA DATA DEL JUEGO EN BLOQUES
 
 	JSR LIMPIOBANQUEO
-	LDX #$a0		;GENREAMOS UNA PEQUEÑA PAUSA PARA QUE SE
+	LDX #$a0		;GENREAMOS UNA PEQUEï¿½A PAUSA PARA QUE SE
 	JSR PAUSITA
 	LDX #$3C		;CIERRO GRABACION
 	LDA #$03
@@ -1763,7 +1763,7 @@ INICIO
 	STX SISTEMA		;SETEO SISTEMA
 	JMP START
 
-//Ponemos la rutina VBI aquí al final
+//Ponemos la rutina VBI aquï¿½ al final
 .proc VBI
 fin_sistema=$04	//Desde 0 a 4
 	lda consol
