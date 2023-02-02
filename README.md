@@ -14,6 +14,15 @@ computadora.
 
 El sistema esta bajo el sistema operativo MyDOS 4.53, capaz de poder leer discos de doble densidad.
 
+## DESCRIPTION
+Converter with stac system, powerful when transferring your games to the tape, since it has 4 speed levels, which you can use to your liking.
+
+It has the possibility of being able to record large games such as the Commando 256k, since it has the recognition for Atari with expansions, capable of reading more than the 4 original banks of the 130xe.
+
+To change recording speeds, just press the OPTION key on your computer.
+
+The system is under the MyDOS 4.53 operating system, capable of reading double-density disks.
+
 <picture>
  <img src="https://raw.githubusercontent.com/a8dogdark/atari_ultra_stac_by_dogdark/main/ultra.png">
 </picture>
