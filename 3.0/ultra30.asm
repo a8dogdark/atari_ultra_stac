@@ -1,46 +1,20 @@
-;************************************************
-;VALORES PRINCIPALES QUE REGULA LOS BAUDIOS
-;CODIGO DONADO POR WILLYSOFT
-;************************************************
-B00600 	= $05CC		;TIMER  600 BPS
-B00800 	= $0458  	;TIMER  800 BPS
-B00900  = $03DB     ;TIMER  900 BPS
-B00990 	= $0381  	;TIMER  990 BPS
-B01150 	= $0303  	;TIMER 1150 BPS
-B01400	= $0278		;TIMER 1400 BPS    
-    ORG $2000
+    ORG $2100
     ICL 'BASE/SYS_EQUATES.M65'
     ICL 'KEM2.ASM'
     ICL 'MEM.ASM'
     ICL 'HEXASCII.ASM'
-NHP
-    .SB "   NHP"    ;600 BAUDIOS
-NHP8
-    .SB "NHP800"    ;800 BAUDIOS
-NHP9
-    .SB "NHP900"    ;900 BAUDIOS
-STAC
-    .SB "  STAC"    ;990 BAUDIOS SOLO XC11
-ULTRA
-    .SB " ULTRA"    ;1150 BAUDIOS SOLO XC11
-SUPER
-    .SB " SUPER"    ;1400 BAUDIOS SOLO EMULADORES
 SISTEMA
     .BY 0
-GRABANDOOPEN
-    .SB +128,"  PRESIONE  RETURN  "
-GRABANDOINICIO
-    .SB +128,"  GRABANDO  INICIO  "
-GRABANDOLOADER
-    .SB +128,"  GRABANDO  LOADER  "
-GRABANDOJUEGO
-    .SB +128,"  GRABANDO ARCHIVO  "
+BYTESLEIDOS
+    .BY 0,0,0
+BANCOSTOTALES
+    .BY 0,0
 DLS
 :3  .BY $70
     .BY $46
     .WO SHOW
     .BY $70
-:21  .BY $02
+:22 .BY $02
     .BY $41
     .WO DLS
 SHOW
@@ -49,264 +23,184 @@ SHOW
     .SB "  softwares "
     .SB +32,"QRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRE"
     .SB "| DOGCOPY ULTRA V 3.0  BY DOGDARK 2024 |"
-    .SB +32,"ARRRRRRRRRRRRRRRRRRRRRRRRRRRWRRRRRRRRRRD"
-    .SB "| MEMORIA DISPONIBLE        | "
-MEMORIADISPONIBLE
-    .SB "******** |"
-    .SB "| BANCOS DISPONIBLES        |      "
-BANCOSDISPONIBLES
+    .SB +32,"ARRRRRRRRRRRRRRRRRRRRWRRRRRRRRRRRRRRRRRD"
+    .SB "| MEMORIA DISPONIBLE |         ******* |"
+    .SB "| BANCOS DISPONIBLES |             *** |"
+    .SB "| PORTB EN USO       |             "
+MUESTROPORTB
     .SB "*** |"
-    .SB "| PORTB EN USO              |      "
-PORTBENUSO    
-    .SB "*** |"
-    .SB "| BYTES LEIDOS              | "
-BYTESLEIDOS
-    .SB "******** |"
-    .SB "| BLOQUES TOTALES           |     "
-BLOQUESTOTALES
-    .SB "**** |"
-    .SB "| SISTEMA A GRABAR          |   "
-SISTEMAAGRABAR    
+    .SB "| SISTEMA EN USO     |          "
+MUESTROSISTEMA
     .SB "****** |"
-    .SB +32,"ARRRRRRRRRRRWRRRRRRRRRRRRRRRXRRRRRRRRRRD"
+    .SB "| BAUD A GRABAR      |            "
+MUESTROBAUD
+    .SB "**** |"
+    .SB "| BYTES LEIDOS       |         ******* |"
+    .SB "| BLOQUES A GRABAR   |            **** |"
+    .SB +32,"ARRRRRRRRRRRWRRRRRRRRXRRRRRRRRRRRRRRRRRD"
     .SB "| TITULO 01 | "
-TITULO01    
+TITULO01
     .SB "********************     |"
     .SB "| TITULO 02 | "
-TITULO02    
+TITULO02
     .SB "********************     |"
-    .SB "| UNIDAD    | "
-UNIDAD
+    .SB     "| FUENTE    | "
+FUENTE
     .SB "********************     |"
     .SB +32,"ZRRRRRRRRRRRXRRRRRRRRRRRRRRRRRRRRRRRRRRC"
-DATA
-    .SB "DATA************************************"
-    .SB "****************************************"
-    .SB "****************************************"
-    .SB "****************************************"
-    .SB "****************************************"
-    .SB "****************************************"
-    .SB "*************************************FIN"
+    .SB "DATA************************************" ;40
+    .SB "****************************************" ;80
+    .SB "****************************************" ;120
+    .SB "****************************************" ;160
+    .SB "****************************************" ;200
+    .SB "****************************************" ;240
+    .SB "*************************************FIN" ;250
+NHP
+    .SB "   NHP"
+NHP8
+    .SB "  NHP8"
+NHP9
+    .SB "NHP900"
+NHPSTAC
+    .SB "  STAC"
+NHPULTRA
+    .SB " ULTRA"
+NHPSUPER
+    .SB " SUPER"
+
+BAUDIOS600
+    .SB "0600"
+BAUDIOS800
+    .SB "0800"
+BAUDIOS900
+    .SB "0900"
+BAUDIOSSTAC
+    .SB "0990"
+BAUDIOSULTRA
+    .SB "1150"
+BAUDIOSSUPER
+    .SB "1400"
+;************************************************
+;DISPLAY DE INICIO DEL PROGRAMA Y FUNCIONALIDAD
+;DIRECTA A TODAS SUS FUNCIONES
+;************************************************
+DOS
+	JMP ($0C)
+@START
+	JSR DOS
 START
     LDX #<DLS
     LDY #>DLS
     STX $230
     STY $231
-    LDA #$80
+    LDA #$60
     STA 710
     STA 712
     JSR LIMPIO
-
-;************************************************
-;ABRO PERIFERICO CASETTE
-;************************************************
-;
-    LDX #19
-ABROPERIFERICO
-    LDA GRABANDOOPEN,X 
-    STA UNIDAD,X 
-    DEX
-    BPL ABROPERIFERICO
     JMP *
+
 INICIO
     JSR KEM
     JSR MEM
-    LDA #$00
-    STA SISTEMA
-
+    LDX # <@START
+	LDY # >@START
+	LDA #$03
+	STX $02
+	STY $03
+	STA $09
+	LDY #$FF
+	STY $08
+	INY   
+	STY $0244
+	LDX #0
+	STX SISTEMA		;SETEO SISTEMA
     JMP START
-    
-
-
-;************************************************
-;FUNCIONES DEL SISTEMA
-;************************************************
-;
 LIMPIO
-    LDX #39
+    LDX #19
     LDA #$00
 LIMPIO2
-    STA DATA,X
-    STA DATA+40,X
-    STA DATA+80,X
-    STA DATA+120,X
-    STA DATA+160,X
-    STA DATA+200,X
-    STA DATA+240,X
+    STA TITULO01,X
+    STA TITULO02,X
+    STA FUENTE,X
     DEX
     BPL LIMPIO2
-    LDX #19
-LIMPIO3
-    STA TITULO01,X
-    STA TITULO02,X 
-    STA UNIDAD,X 
-    DEX
-    BPL LIMPIO3
-    LDA #$3F
-    STA TITULO01
-    STA TITULO02
-    STA UNIDAD
-    JSR VALIDOSISTEMA
-    JSR CUENTOMEMORIA
-    JSR VEOPORTB
-    JSR VEOBYTESLEIDOS
-    JSR VEOBLOKES
+    JSR ESPORTB
+    JSR CUALSISTEMA
     RTS
-;************************************************
-;FUNCION PARA REGULAR LA VELOCIDAD AL GRABAR
-;************************************************
-;
-BAUD.600
-	LDA # <B00600
-	JSR BAUD.M1
-	LDA # >B00600
-	JMP BAUD.M2
-BAUD.800
-	LDA # <B00800
-	JSR BAUD.M1
-	LDA # >B00800
-	JMP BAUD.M2
-BAUD.900
-    LDA # <B00900
-	JSR BAUD.M1
-	LDA # >B00900
-	JMP BAUD.M2
-BAUD.990
-	LDA # <B00990
-	JSR BAUD.M1
-	LDA # >B00990
-	JMP BAUD.M2
-BAUD.1150
-	LDA # <B01150
-	JSR BAUD.M1
-	LDA # >B01150
-	JMP BAUD.M2
-BAUD.1400
-	LDA # <B01400
-	JSR BAUD.M1
-	LDA # >B01400
-BAUD.M2
-	STA $EBA8
-	STA $FD46
-	STA $FCE1
-	RTS
-BAUD.M1
-	STA $EBA3
-	STA $FD41
-	STA $FCDC
-	RTS
-;************************************************
-; VALIDO LA VELOCIDAD A GRABAR Y MUESTRO EN 
-; PANTALLA
-;************************************************
-VALIDOSISTEMA
-    LDX #5
-    LDA SISTEMA
-    CMP #0
-    BEQ ESNHP
-    CMP #1
-    BEQ ESNHP8
-    CMP #2
-    BEQ ESNHP9
-    CMP #3 
-    BEQ ESSTAC
-    CMP #4
-    BEQ ESULTRA
-    JMP ESSUPER
-ESNHP
-    LDA NHP,X
-    STA SISTEMAAGRABAR,X
-    DEX
-    BPL ESNHP
-    RTS
-ESNHP8
-    LDA NHP8,X
-    STA SISTEMAAGRABAR,X
-    DEX
-    BPL ESNHP8
-    RTS
-ESNHP9
-    LDA NHP9,X
-    STA SISTEMAAGRABAR,X
-    DEX
-    BPL ESNHP9
-    RTS
-ESSTAC
-    LDA STAC,X
-    STA SISTEMAAGRABAR,X
-    DEX
-    BPL ESSTAC
-    RTS
-ESULTRA
-    LDA ULTRA,X
-    STA SISTEMAAGRABAR,X
-    DEX
-    BPL ESULTRA
-    RTS
-ESSUPER
-    LDA SUPER,X
-    STA SISTEMAAGRABAR,X
-    DEX
-    BPL ESSUPER
-    RTS
-CUENTOMEMORIA
-    JSR LIMPIOVAL
-    LDA MEMORIA
-    STA VAL
-    LDA MEMORIA+1
-    STA VAL+1
-    LDA MEMORIA+2
-    STA VAL+2
-    JSR BIN2BCD
-    LDX #7
-CUENTOMEMORIA1
-    LDA RESATASCII,X
-    STA MEMORIADISPONIBLE,X 
-    DEX
-    BPL CUENTOMEMORIA1
-    JSR LIMPIOVAL
-    LDA BANKOS
-    STA VAL
-    JSR BIN2BCD
-    LDY #7
-    LDX #2
-CUENTOMEMORIA2
-    LDA RESATASCII,Y
-    STA BANCOSDISPONIBLES,X 
-    DEY
-    DEX
-    BPL CUENTOMEMORIA2
-    RTS
-VEOPORTB
+ESPORTB
     JSR LIMPIOVAL
     LDA PORTB
     STA VAL
     JSR BIN2BCD
     LDY #7
     LDX #2
-VEOPORTB1
+ESPORTB1
     LDA RESATASCII,Y
-    STA PORTBENUSO,X 
+    STA MUESTROPORTB,X
     DEY
     DEX
-    BPL VEOPORTB1
+    BPL ESPORTB1
     RTS
-VEOBYTESLEIDOS
-    LDA #$10
-    LDX #7
-VEOBYTESLEIDOS1
-    STA BYTESLEIDOS,X
-    DEX
-    BPL VEOBYTESLEIDOS1
+CUALSISTEMA
+    LDA SISTEMA
+    CMP #0
+    BEQ SISTEMANHP
+    CMP #1
+    BEQ SISTEMANHP8
+SISTEMANHP
+
     RTS
-VEOBLOKES
-    LDA #$10
-    LDX #3
-VEOBLOKES1
-    STA BLOQUESTOTALES,X
-    DEX
-    BPL VEOBLOKES1
+SISTEMANHP8
     RTS
+
+CALCULOMEMORIA
+
+
+
+
+    LDA BANKOS
+
+    RTS
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

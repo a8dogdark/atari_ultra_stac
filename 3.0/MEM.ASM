@@ -1,4 +1,4 @@
-@TAB_MEM_BANKS = $600
+@TAB_MEM_BANKS = $2000
 copyMemPtr1 = 254
 copyMemPtr2 = 252
 copyMemCounter  = 250
