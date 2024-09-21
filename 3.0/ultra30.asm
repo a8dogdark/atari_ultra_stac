@@ -6,6 +6,7 @@ BAUD990     = $0381
 BAUD1150    = $0303
 BAUD1400    = $0278
 BAUD2000    = $01B8
+PCRSR       = $CB
     ORG $2100
     ICL  'BASE/SYS_EQUATES.M65'
     ICL 'KEM2.ASM'
@@ -19,6 +20,18 @@ DLS
 :22  .BY $02
     .BY $41
     .WO DLS
+;************************************************
+; DEFINICION DEL DISPLAY
+; PARA DIRECTORIO
+;************************************************
+?DIR
+:3	.BY $70
+    .BY $46
+	.WO ???DIR
+	.BY $70
+:9    .BY $02
+	.BY $41
+	.WO ?DIR
 SHOW
     .SB " "
     .SB +128,"dogdark"
@@ -68,8 +81,21 @@ MUESTRODATA
     .SB "****************************************"  ;200
     .SB "****************************************"  ;240
     .SB "*************************************FIN"  ;280
+;************************************************
+;VALORES PARA PANTALLA DIRECTORIO
+;************************************************
+???DIR
+	.SB "     DIRECTORIO     "
+??DIR
+:10	.SB "                                        "
 SISTEMA
     .BY 0
+RY
+    .BY 0,0,0
+?FUENTE
+	.BYTE '                    '
+ALL
+	.BYTE 'D:*.*',$9B
 NHP600
     .SB "NHP600"
 NHP700
@@ -216,6 +242,258 @@ RESETER1
     STA FUENTE
     RTS
 ;************************************************
+;FUNCION QUE NOS PERMITE PODER CONVERTIR UN BYTE
+;EN ATASCII, USADO PARA INGRESO DE TITULOS Y
+;FUENTE, NO TIENE LIMITACIONES MAYORES EN LAS
+;PULSACIONES DEL TECLADO
+;************************************************
+ASCINT
+	CMP #32
+	BCC ADD64
+	CMP #96
+	BCC SUB32
+	CMP #128
+	BCC REMAIN
+	CMP #160
+	BCC ADD64
+	CMP #224
+	BCC SUB32
+	BCS REMAIN
+ADD64
+	CLC
+	ADC #64
+	BCC REMAIN
+SUB32
+	SEC
+	SBC #32
+REMAIN
+	RTS
+;************************************************
+;GENERA UNA LIMPIEZA TOTAL DEL DISPLAY DEL
+;DIRECTORIO
+;************************************************
+CLS
+	LDX # <??DIR
+	LDY # >??DIR
+	STX PCRSR
+	STY PCRSR+1
+	LDY #$00
+	LDX #$00
+?CLS
+	LDA #$00
+	STA (PCRSR),Y
+	INY
+	BNE ??CLS
+	INX
+	INC PCRSR+1
+??CLS
+	CPY #104	;$68
+	BNE ?CLS
+	CPX #$01
+	BNE ?CLS
+	RTS
+;************************************************
+;FUNCION QUE ABRE PERIFERICOS
+;************************************************
+OPEN
+	LDX #$10
+	LDA #$03
+	STA $0342,X
+	LDA # <?FUENTE
+	STA $0344,X
+	LDA # >?FUENTE
+	STA $0345,X
+	LDA #$04
+	STA $034A,X
+	LDA #$80
+	STA $034B,X
+	JSR $E456
+	DEY
+	BNE DIR
+	RTS
+;************************************************
+;FUNCION QUE CIERRA PERIFERICOS
+;************************************************
+CLOSE
+	LDX #$10
+	LDA #$0C
+	STA $0342,X
+	JMP $E456
+;************************************************
+;MUESTRA EL DIRECTORIO EN PANTALLA
+;************************************************
+DIR
+	JSR CLOSE
+	JSR CLS
+	LDX # <?DIR
+	LDY # >?DIR
+	STX $0230
+	STY $0231
+	LDX # <??DIR
+	LDY # >??DIR
+	STX PCRSR
+	STY PCRSR+1
+	
+;	
+	LDX #$10
+	LDA #$03
+	STA $0342,X
+	LDA # <ALL
+	STA $0344,X
+	LDA # >ALL
+	STA $0345,X
+	LDA #$06
+	STA $034A,X
+	LDA #$00
+	STA $034B,X
+	JSR $E456
+	LDA #$07
+	STA $0342,X
+	LDA #$00
+	STA $0348,X
+	STA $0349,X
+	STA RY
+	STA RY+1
+LEDIR
+	JSR $E456
+	BMI ?EXIT
+	CMP #155
+	BEQ EXIT
+	JSR ASCINT
+	LDY RY
+	STA (PCRSR),Y
+	INC RY
+	BNE F0
+	INC PCRSR+1
+	INC RY+1
+F0
+	LDY RY+1
+	CPY #$01
+	BNE F1
+	LDY RY
+	CPY #104	;$68
+	BCC F1
+	JSR PAUSE
+	INC RY
+F1
+	JMP LEDIR
+EXIT
+;	INC RY
+	INC RY
+	INC RY
+	JMP LEDIR
+?EXIT
+	JSR CLOSE
+	JSR PAUSE
+	JSR CLS
+	PLA
+	PLA
+	JMP START
+PAUSE
+	LDA 53279
+	CMP #$06
+	BNE PAUSE
+	JSR CLS
+	LDA #$00
+	STA RY
+	STA RY+1
+	LDA # <??DIR
+	STA PCRSR
+	LDA # >??DIR
+	STA PCRSR+1
+	LDX #$10
+	RTS
+;************************************************
+;RUTINA QUE NOS PERMMITE PODER INGRESAR INFORMA-
+;CION A UN CAMPO ESPECIFICO YA ANTES DECLARADO
+;MOSTRANDO UN CURSOR EN FORMA PARPADEANTE
+;************************************************
+;
+;************************************************
+;CURSOR PARPADEANTE
+;************************************************
+FLSH
+	LDY RY
+	LDA (PCRSR),Y
+	EOR #63
+	STA (PCRSR),Y
+	LDA #$10
+	STA $021A
+	RTS
+;************************************************
+;ABRE PERIFERICO TECLADO
+;************************************************
+OPENK
+	LDA #255
+	STA 764
+	LDX #$10
+	LDA #$03
+	STA $0342,X
+	STA $0345,X
+	LDA #$26
+	STA $0344,X
+	LDA #$04
+	STA $034A,X
+	JSR $E456
+	LDA #$07
+	STA $0342,X
+	LDA #$00
+	STA $0348,X
+	STA $0349,X
+	STA RY
+	RTS
+;************************************************
+;RUTINA QUE LEE LO TECLEADO
+;************************************************
+RUTLEE
+	LDX # <FLSH
+	LDY # >FLSH
+	LDA #$10
+	STX $0228
+	STY $0229
+	STA $021A
+	JSR OPENK
+GETEC
+	JSR $E456
+	CMP #$7E
+	BNE C0
+	LDY RY
+	BEQ GETEC
+	LDA #$00
+	STA (PCRSR),Y
+	LDA #63		;$3F
+	DEY
+	STA (PCRSR),Y
+	DEC RY
+	JMP GETEC
+C0
+	CMP #155	;$9B
+	BEQ C2
+	JSR ASCINT
+	LDY RY
+	STA (PCRSR),Y
+	CPY #20		;#14
+	BEQ C1
+	INC RY
+C1
+	JMP GETEC
+C2
+	JSR CLOSE
+	LDA #$00
+	STA $021A
+	LDY RY
+	STA (PCRSR),Y
+	RTS
+
+
+
+
+
+
+;************************************************
+;MUESTRA EL DIRECTORIO EN PANTALLA
+;************************************************
+;************************************************
 ;DISPLAY DE INICIO DEL PROGRAMA Y FUNCIONALIDAD
 ;DIRECTA A TODAS SUS FUNCIONES
 ;************************************************
@@ -240,6 +518,84 @@ START
 	LDX #>VBI
 	LDA #$07	; Diferida
 	JSR SETVBV	;Setea
+
+;************************************************
+;INGRESAMOS EL TITULO 01
+;************************************************
+	LDX # <TITULO01
+	LDY # >TITULO01
+	STX PCRSR
+	STY PCRSR+1
+	JSR RUTLEE
+
+;************************************************
+;INGRESAMOS EL TITULO 01
+;************************************************
+	LDX # <TITULO02
+	LDY # >TITULO02
+	STX PCRSR
+	STY PCRSR+1
+	JSR RUTLEE
+
+;************************************************
+;INGRESAMOS EL TITULO 01
+;************************************************
+	LDX # <FUENTE
+	LDY # >FUENTE
+	STX PCRSR
+	STY PCRSR+1
+	JSR RUTLEE
+	LDY RY
+	CPY #1
+	BEQ OPENPER
+	LDY #19
+CONV
+	LDA FUENTE,Y
+	BEQ ?REMAIN
+	AND #$7F
+	CMP #64
+	BCC ADD32
+	CMP #96
+	BCC SUB64
+	BCS ?REMAIN
+ADD32
+	CLC
+	ADC #32
+	BCC OKLET
+SUB64
+	SEC
+	SBC #64
+?REMAIN
+	LDA #$9B
+OKLET
+	STA ?FUENTE,Y
+	DEY
+	BPL CONV
+OPENPER
+    JSR OPEN
+    LDA #$00
+    STA 710
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     JMP *
 INICIO
     JSR KEM			;COPIO LA ROM A LA RAM
