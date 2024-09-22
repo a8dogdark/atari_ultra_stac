@@ -707,6 +707,16 @@ PONBLOQUES4
 	DEX
 	BPL PONBLOQUES4
 	RTS
+
+
+AGRABAR
+	LDA #$55
+	STA MUESTRODATA
+	STA MUESTRODATA+1
+
+	RTS
+
+
 ;************************************************
 ;MUESTRA EL DIRECTORIO EN PANTALLA
 ;************************************************
@@ -799,6 +809,7 @@ OPENPER
     STA 710
 
 
+	JSR AGRABAR
 
 
 
